@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Energy Sprint Cohort — Impact Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --deep-blue: #0C498A;
+      --light-cyan: #B2EEFA;
+      --light-green: #9DC384;
+      --forest-green: #669348;
+      --sky-blue: #69B5FA;
+      --white: #ffffff;
+    }
+
+    body {
+      font-family: 'Open Sans', 'PT Sans', sans-serif;
+      background: var(--light-cyan);
+      color: var(--deep-blue);
+      line-height: 1.55;
+      font-size: 15px;
+    }
+
+    a { color: var(--deep-blue); }
+    a:hover { color: var(--forest-green); }
+
+    .header {
+      background: var(--deep-blue);
+      color: var(--white);
+      padding: 2.5rem 1.5rem 2rem;
+    }
+
+    .header-inner { max-width: 1100px; margin: 0 auto; }
+
+    .header h1 {
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--white);
+    }
+
+    .header .subtitle {
+      color: var(--light-cyan);
+      font-size: 1.05rem;
+      max-width: 720px;
+      margin-bottom: 1.25rem;
+    }
+
+    .header-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.5rem;
+      font-size: 0.88rem;
+      color: var(--light-cyan);
+    }
+
+    .header-meta a {
+      color: var(--sky-blue);
+      text-decoration: underline;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 1.75rem 1.25rem 3rem; }
+
+    section { margin-bottom: 2.25rem; }
+
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--deep-blue);
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+
+    .intro {
+      background: var(--white);
+      border-left: 4px solid var(--forest-green);
+      padding: 1.1rem 1.25rem;
+      margin-bottom: 2rem;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .intro p + p { margin-top: 0.6rem; }
+
+    /* Seat grid */
+    .seats-overview {
+      background: var(--white);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .seat-bar {
+      display: flex;
+      height: 28px;
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 0.75rem 0 1rem;
+    }
+
+    .seat-bar span { display: block; height: 100%; }
+    .bar-named { background: var(--deep-blue); width: 33.33%; }
+    .bar-fbd { background: var(--forest-green); width: 33.33%; }
+    .bar-open { background: var(--sky-blue); width: 33.34%; }
+
+    .seat-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem 2rem;
+      font-size: 0.88rem;
+    }
+
+    .legend-item { display: flex; align-items: center; gap: 0.45rem; }
+    .legend-dot { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+
+    .seat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .seat {
+      border: 2px solid var(--deep-blue);
+      border-radius: 6px;
+      padding: 0.55rem 0.4rem;
+      text-align: center;
+      font-size: 0.75rem;
+      min-height: 72px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: var(--white);
+    }
+
+    .seat.filled { background: var(--light-cyan); }
+    .seat.open-fbd { border-color: var(--forest-green); border-style: dashed; background: var(--white); color: var(--forest-green); }
+    .seat.open-call { border-color: var(--sky-blue); border-style: dashed; background: var(--white); color: var(--deep-blue); }
+    .seat .name { font-weight: 700; font-size: 0.78rem; line-height: 1.2; }
+    .seat .label { font-size: 0.65rem; margin-top: 0.2rem; opacity: 0.85; }
+    .seat.open-fbd .label, .seat.open-call .label { font-weight: 600; }
+
+    /* Consolidation blocks */
+    .cannot-consolidate {
+      background: var(--deep-blue);
+      color: var(--light-cyan);
+      border-radius: 8px;
+      padding: 1.35rem 1.4rem;
+      margin-bottom: 2rem;
+    }
+
+    .cannot-consolidate h2 { color: var(--light-cyan); margin-bottom: 0.6rem; }
+    .cannot-consolidate ul { margin: 0.75rem 0 0 1.25rem; }
+    .cannot-consolidate li { margin-bottom: 0.45rem; }
+    .cannot-consolidate .note { margin-top: 0.85rem; font-size: 0.9rem; color: var(--sky-blue); }
+
+    .consolidation-panel {
+      background: var(--white);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      border: 2px solid var(--light-green);
+    }
+
+    .consolidation-panel h3 { color: var(--forest-green); }
+
+    .metric-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid var(--light-cyan);
+      gap: 0.5rem;
+    }
+
+    .metric-row:last-child { border-bottom: none; }
+
+    .metric-value { font-weight: 700; font-size: 1.05rem; }
+    .metric-label { flex: 1; min-width: 180px; }
+
+    .source {
+      font-size: 0.78rem;
+      color: var(--forest-green);
+      word-break: break-all;
+    }
+
+    .source a { color: var(--forest-green); text-decoration: underline; }
+
+    .pending {
+      color: var(--deep-blue);
+      font-style: italic;
+      opacity: 0.75;
+      font-weight: 600;
+    }
+
+    .mubon-only {
+      background: var(--light-green);
+      border-radius: 6px;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      margin-left: 0.35rem;
+      vertical-align: middle;
+    }
+
+    /* Candidate cards */
+    .candidates { display: grid; gap: 1.25rem; }
+
+    .candidate {
+      background: var(--white);
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--sky-blue);
+    }
+
+    .candidate-header {
+      background: var(--deep-blue);
+      color: var(--white);
+      padding: 0.85rem 1.1rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .candidate-header a {
+      color: var(--sky-blue);
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+
+    .candidate-header a:hover { color: var(--light-cyan); text-decoration: underline; }
+
+    .candidate-header .sector {
+      font-size: 0.82rem;
+      color: var(--light-cyan);
+    }
+
+    .candidate-body { padding: 1rem 1.1rem 1.1rem; }
+
+    .candidate-body .desc {
+      font-size: 0.9rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .facts-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .facts-table th,
+    .facts-table td {
+      text-align: left;
+      padding: 0.45rem 0.5rem;
+      border-bottom: 1px solid var(--light-cyan);
+      vertical-align: top;
+    }
+
+    .facts-table th {
+      font-weight: 700;
+      width: 28%;
+      color: var(--forest-green);
+    }
+
+    .facts-table td:last-child { width: 32%; font-size: 0.78rem; }
+
+    .cth-role {
+      background: var(--light-green);
+      border-radius: 8px;
+      padding: 1.1rem 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    .cth-role h2 { margin-bottom: 0.5rem; }
+
+    .open-seats-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 680px) {
+      .open-seats-section { grid-template-columns: 1fr; }
+    }
+
+    .open-block {
+      background: var(--white);
+      border-radius: 8px;
+      padding: 1.1rem;
+    }
+
+    .open-block.fbd { border: 2px dashed var(--forest-green); }
+    .open-block.open-call-block { border: 2px dashed var(--sky-blue); }
+
+    .open-block h3 { margin-bottom: 0.5rem; }
+
+    .open-block.fbd h3 { color: var(--forest-green); }
+    .open-block.open-call-block h3 { color: var(--deep-blue); }
+
+    .open-seats-mini {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.4rem;
+      margin-top: 0.75rem;
+    }
+
+    .mini-seat {
+      border: 1px dashed;
+      border-radius: 4px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 600;
+    }
+
+    .open-block.fbd .mini-seat { border-color: var(--forest-green); color: var(--forest-green); }
+    .open-block.open-call-block .mini-seat { border-color: var(--sky-blue); color: var(--deep-blue); }
+
+    .footer {
+      background: var(--deep-blue);
+      color: var(--light-cyan);
+      text-align: center;
+      padding: 1.75rem 1.25rem;
+      margin-top: 2rem;
+    }
+
+    .footer .tagline {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 0.5rem;
+    }
+
+    .footer p { font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-inner">
+      <h1>Energy Sprint Cohort Dashboard</h1>
+      <p class="subtitle">A candid view of startup candidates and what impact numbers can actually be consolidated — built for portfolio review, not vanity totals.</p>
+      <div class="header-meta">
+        <span>Prepared for: Gideon Blaauw · Richard Kiger (Zero by Fifty) · Fernando Cortés (Fundación Bolívar Davivienda)</span>
+        <span><a href="https://energia-deploy.vercel.app/" target="_blank" rel="noopener">Concept note →</a></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <div class="intro">
+      <p><strong>30 seats.</strong> Ten named Energy Sprint candidates are linked below with figures taken only from their live CTH portfolio pages. Twenty seats remain open — ten reserved for Fundación Bolívar Davivienda and ten for Open Call. Empty seats are shown as open, not as zero impact.</p>
+      <p>We only sum a metric when every included startup reports the same unit from a cited source. Mixed units (farms, kWh, revenue) are never blended into one headline number.</p>
+    </div>
+
+    <!-- Seats overview -->
+    <section class="seats-overview">
+      <h2>Cohort seats (30)</h2>
+      <div class="seat-bar" aria-hidden="true">
+        <span class="bar-named" title="10 named candidates"></span>
+        <span class="bar-fbd" title="10 Fundación Bolívar Davivienda"></span>
+        <span class="bar-open" title="10 Open Call"></span>
+      </div>
+      <div class="seat-legend">
+        <div class="legend-item"><span class="legend-dot" style="background:var(--deep-blue)"></span> 10 named candidates</div>
+        <div class="legend-item"><span class="legend-dot" style="background:var(--forest-green)"></span> 10 Fundación Bolívar Davivienda (open)</div>
+        <div class="legend-item"><span class="legend-dot" style="background:var(--sky-blue)"></span> 10 Open Call (open)</div>
+      </div>
+      <div class="seat-grid" id="seat-grid"></div>
+    </section>
+
+    <!-- Cannot consolidate -->
+    <section class="cannot-consolidate">
+      <h2>Cannot consolidate yet</h2>
+      <p>These cohort-level lines stay blocked until the nine non-MubOn portfolio pages connect verified, comparable MRV — or until every included startup shares the same cited unit.</p>
+      <ul>
+        <li><strong>kWh MRV (cohort total):</strong> Pending on nine pages. MubOn is the only candidate with IoT kWh telemetry on its CTH page; that figure is shown separately, not as a cohort sum.</li>
+        <li><strong>Verified tCO₂e (cohort total):</strong> Pending on nine pages. MubOn reports 157 tCO₂e (3rd-party validated); others show [PENDIENTE] or unverified site claims only.</li>
+        <li><strong>CTH accelerator deliverables:</strong> Workshop counts, mentor hours, and post-program outcomes are [PENDIENTE] on all nine non-MubOn pages. CTH’s role here is accelerator / knowledge transfer only.</li>
+      </ul>
+      <p class="note">Honesty over aggregation: this dashboard shows what is sourced, what is pending, and what cannot yet be added.</p>
+    </section>
+
+    <!-- Consolidation panel -->
+    <section>
+      <h2>What can be stated today</h2>
+
+      <div class="consolidation-panel">
+        <h3>Single-source MRV (MubOn only — not a cohort total)</h3>
+        <div class="metric-row">
+          <span class="metric-label">kWh energy delivered <span class="mubon-only">MubOn only</span></span>
+          <span class="metric-value">411,752 kWh</span>
+          <span class="source"><a href="https://data.cleantechhub.net/projects/mubon/" target="_blank" rel="noopener">data.cleantechhub.net/projects/mubon/</a></span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">tCO₂e emissions avoided (3rd-party validated) <span class="mubon-only">MubOn only</span></span>
+          <span class="metric-value">157 tCO₂e</span>
+          <span class="source"><a href="https://data.cleantechhub.net/projects/mubon/" target="_blank" rel="noopener">data.cleantechhub.net/projects/mubon/</a></span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Charging sessions logged <span class="mubon-only">MubOn only</span></span>
+          <span class="metric-value">20,000+</span>
+          <span class="source"><a href="https://data.cleantechhub.net/projects/mubon/" target="_blank" rel="noopener">data.cleantechhub.net/projects/mubon/</a></span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Registered users <span class="mubon-only">MubOn only</span></span>
+          <span class="metric-value">14,000</span>
+          <span class="source"><a href="https://data.cleantechhub.net/projects/mubon/" target="_blank" rel="noopener">data.cleantechhub.net/projects/mubon/</a></span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Charging points <span class="mubon-only">MubOn only</span></span>
+          <span class="metric-value">115</span>
+          <span class="source"><a href="https://data.cleantechhub.net/projects/mubon/" target="_blank" rel="noopener">data.cleantechhub.net/projects/mubon/</a></span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Installed capacity <span class="mubon-only">MubOn only</span></span>
+          <span class="metric-value">800+ kW</span>
+          <span class="source"><a href="https://data.cleantechhub.net/projects/mubon/" target="_blank" rel="noopener">data.cleantechhub.net/projects/mubon/</a></span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Gross revenue <span class="mubon-only">MubOn only</span></span>
+          <span class="metric-value">$69K USD (+62% YoY)</span>
+          <span class="source"><a href="https://data.cleantechhub.net/projects/mubon/" target="_blank" rel="noopener">data.cleantechhub.net/projects/mubon/</a></span>
+        </div>
+      </div>
+
+      <div class="consolidation-panel">
+        <h3>Not summable across the cohort (different units / incomparable claims)</h3>
+        <div class="metric-row">
+          <span class="metric-label">Farms served (TOBO)</span>
+          <span class="metric-value">2,000+</span>
+          <span class="source"><a href="https://data.cleantechhub.net/projects/tobo/" target="_blank" rel="noopener">data.cleantechhub.net/projects/tobo/</a></span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Solar installations (Sunny App)</span>
+          <span class="metric-value">600+</span>
+          <span class="source"><a href="https://data.cleantechhub.net/projects/sunny-app/" target="_blank" rel="noopener">data.cleantechhub.net/projects/sunny-app/</a></span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Panels installed (Sunny App)</span>
+          <span class="metric-value">45,000+</span>
+          <span class="source"><a href="https://data.cleantechhub.net/projects/sunny-app/" target="_blank" rel="noopener">data.cleantechhub.net/projects/sunny-app/</a></span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">MW networks installed (Suncolombia)</span>
+          <span class="metric-value">57.6 MW</span>
+          <span class="source"><a href="https://data.cleantechhub.net/projects/suncolombia/" target="_blank" rel="noopener">data.cleantechhub.net/projects/suncolombia/</a></span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Successful projects (BATx)</span>
+          <span class="metric-value">50+</span>
+          <span class="source"><a href="https://data.cleantechhub.net/projects/batx/" target="_blank" rel="noopener">data.cleantechhub.net/projects/batx/</a></span>
+        </div>
+        <p style="margin-top:0.75rem;font-size:0.88rem;">These figures are cited per startup. They are not added together — farms, panels, MW, and charging points measure different things.</p>
+      </div>
+    </section>
+
+    <!-- CTH Role -->
+    <section class="cth-role">
+      <h2>CleantechHUB role in this cohort</h2>
+      <p><strong>Accelerator / knowledge transfer.</strong> CTH is not owner, investor, or operator of these startups. Program affiliations (CLAC21–CLAC25, P4G G3470 for MubOn) reflect acceleration and knowledge transfer support. Deliverable detail beyond program name remains pending on most portfolio pages.</p>
+    </section>
+
+    <!-- Named candidates -->
+    <section>
+      <h2>Named candidates (10)</h2>
+      <p style="margin-bottom:1.25rem;font-size:0.92rem;">Each card links to the live CTH portfolio page. Figures below appear on that page only — [PENDIENTE] fields are shown as pending.</p>
+      <div class="candidates" id="candidates"></div>
+    </section>
+
+    <!-- Open seats -->
+    <section>
+      <h2>Open seats (20)</h2>
+      <div class="open-seats-section">
+        <div class="open-block fbd">
+          <h3>Fundación Bolívar Davivienda</h3>
+          <p>10 seats reserved. No names assigned yet — seats are open, not zero.</p>
+          <div class="open-seats-mini" id="fbd-seats"></div>
+        </div>
+        <div class="open-block open-call-block">
+          <h3>Open Call</h3>
+          <p>10 seats available through open call. No names assigned yet — seats are open, not zero.</p>
+          <div class="open-seats-mini" id="open-call-seats"></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="footer">
+    <p class="tagline">Inspira. Actúa. Transforma.</p>
+    <p>Energy Sprint cohort dashboard · CleantechHUB · All figures traceable to cited portfolio pages · <a href="https://energia-deploy.vercel.app/" style="color:var(--sky-blue)" target="_blank" rel="noopener">Concept note</a></p>
+  </footer>
+
+  <script>
+    const NAMED = [
+      {
+        name: 'MubOn',
+        url: 'https://data.cleantechhub.net/projects/mubon/',
+        sector: 'EV Charging Infrastructure · P4G G3470',
+        desc: 'Colombia\'s collaborative EV charging leader. IoT-enabled network across 9 Colombian cities.',
+        facts: [
+          ['Charging points', '115', 'data.cleantechhub.net/projects/mubon/'],
+          ['Installed capacity', '800+ kW', 'data.cleantechhub.net/projects/mubon/'],
+          ['Cities deployed', '9', 'data.cleantechhub.net/projects/mubon/'],
+          ['kWh energy delivered (MRV)', '411,752 kWh', 'data.cleantechhub.net/projects/mubon/'],
+          ['tCO₂e avoided (3rd-party validated)', '157 tCO₂e', 'data.cleantechhub.net/projects/mubon/'],
+          ['Charging sessions', '20,000+', 'data.cleantechhub.net/projects/mubon/'],
+          ['Registered users', '14,000', 'data.cleantechhub.net/projects/mubon/'],
+          ['Gross revenue', '$69K USD (+62% YoY)', 'data.cleantechhub.net/projects/mubon/'],
+          ['Women in workforce', '60%', 'data.cleantechhub.net/projects/mubon/'],
+          ['CTH deliverables detail', 'Pending beyond P4G closeout', 'data.cleantechhub.net/projects/mubon/']
+        ]
+      },
+      {
+        name: 'TOBO',
+        url: 'https://data.cleantechhub.net/projects/tobo/',
+        sector: 'Wind Energy · Wastewater & Industrial Water · CLAC22',
+        desc: 'Wind-powered and solar water pumping mills for Orinoquía farms, replacing diesel pumps.',
+        facts: [
+          ['Deployments', '2,000+ fincas in Orinoquía', 'data.cleantechhub.net/projects/tobo/'],
+          ['Company history', '22 yrs', 'data.cleantechhub.net/projects/tobo/'],
+          ['Equipment useful life', '20 yrs', 'data.cleantechhub.net/projects/tobo/'],
+          ['CO₂ mitigation claim', '9,792,000 (unit not specified on page)', 'data.cleantechhub.net/projects/tobo/'],
+          ['Tree equivalent', '576,400 trees', 'data.cleantechhub.net/projects/tobo/'],
+          ['kWh MRV', 'Pending', 'data.cleantechhub.net/projects/tobo/'],
+          ['Verified tCO₂e', 'Pending', 'data.cleantechhub.net/projects/tobo/'],
+          ['CTH deliverables', 'Pending', 'data.cleantechhub.net/projects/tobo/']
+        ]
+      },
+      {
+        name: 'Suncolombia',
+        url: 'https://data.cleantechhub.net/projects/suncolombia/',
+        sector: 'Solar PV · CLAC22 · Series B+',
+        desc: 'Off-grid and on-grid solar for rural communities, schools, and telecom towers across Colombia.',
+        facts: [
+          ['Revenue scale (wiki)', '$50K → $15M', 'data.cleantechhub.net/projects/suncolombia/'],
+          ['Battery/storage experience', '13+ yrs', 'data.cleantechhub.net/projects/suncolombia/'],
+          ['Networks installed', '57.6 MW', 'data.cleantechhub.net/projects/suncolombia/'],
+          ['Homecenter Cali project', '716 kWp; ~30% annual energy savings', 'data.cleantechhub.net/projects/suncolombia/'],
+          ['DIAN Cartagena project', '451 kWp; ~210 tCO₂e/year', 'data.cleantechhub.net/projects/suncolombia/'],
+          ['Coralito, Sucre project', '0.99 MW; ~1.59 GWh/year; 784 tCO₂e/year', 'data.cleantechhub.net/projects/suncolombia/'],
+          ['Company-wide kWh MRV', 'Pending', 'data.cleantechhub.net/projects/suncolombia/'],
+          ['Verified tCO₂e (consolidated)', 'Pending', 'data.cleantechhub.net/projects/suncolombia/'],
+          ['CTH deliverables', 'Pending', 'data.cleantechhub.net/projects/suncolombia/']
+        ]
+      },
+      {
+        name: 'SEOS Energy',
+        url: 'https://data.cleantechhub.net/projects/seos/',
+        sector: 'Green Finance · Solar PV · CLAC22 · Seed',
+        desc: 'Fintech-cleantech platform offering up to 100% solar installation financing with real-time monitoring.',
+        facts: [
+          ['Financing', 'Up to 100% solar installation financing', 'data.cleantechhub.net/projects/seos/'],
+          ['Income tax deduction', '50% for 15 years (site)', 'data.cleantechhub.net/projects/seos/'],
+          ['IVA', 'Solar equipment and services excluded', 'data.cleantechhub.net/projects/seos/'],
+          ['Depreciation', '33.33% annual for legal entities', 'data.cleantechhub.net/projects/seos/'],
+          ['ACOSOL', 'Co-founder of Colombian solar association', 'data.cleantechhub.net/projects/seos/'],
+          ['kWh MRV', 'Pending', 'data.cleantechhub.net/projects/seos/'],
+          ['Verified tCO₂e', 'Pending', 'data.cleantechhub.net/projects/seos/'],
+          ['CTH deliverables', 'Pending', 'data.cleantechhub.net/projects/seos/']
+        ]
+      },
+      {
+        name: 'BATx',
+        url: 'https://data.cleantechhub.net/projects/batx/',
+        sector: 'Energy Storage · CLAC25 · Seed',
+        desc: 'Second-life EV and device batteries into storage systems; Energy-as-a-Service 30–40% cheaper than market (wiki).',
+        facts: [
+          ['Successful projects', '50+', 'data.cleantechhub.net/projects/batx/'],
+          ['Experience', '7+ yrs', 'data.cleantechhub.net/projects/batx/'],
+          ['EaaS pricing vs market', '30–40% cheaper (wiki)', 'data.cleantechhub.net/projects/batx/'],
+          ['Pricing anchor', 'From COP 400,000/kWh (site)', 'data.cleantechhub.net/projects/batx/'],
+          ['Service life', '>10 years (Bahía, Valle, Sierra)', 'data.cleantechhub.net/projects/batx/'],
+          ['EPM Ventures', 'Backing stated on website', 'data.cleantechhub.net/projects/batx/'],
+          ['kWh MRV', 'Pending', 'data.cleantechhub.net/projects/batx/'],
+          ['Verified tCO₂e', 'Pending', 'data.cleantechhub.net/projects/batx/'],
+          ['CTH deliverables', 'Pending', 'data.cleantechhub.net/projects/batx/']
+        ]
+      },
+      {
+        name: 'Sunny App',
+        url: 'https://data.cleantechhub.net/projects/sunny-app/',
+        sector: 'Solar PV · Precision Ag & Smart Grid · CLAC21 · Pre-Series A',
+        desc: 'Solar EPC and SaaS platform with automated panel-cleaning robotics and installer tools.',
+        facts: [
+          ['Installations', '600+ projects', 'data.cleantechhub.net/projects/sunny-app/'],
+          ['Geography', '16 Colombian departments', 'data.cleantechhub.net/projects/sunny-app/'],
+          ['Panels installed', '45,000+', 'data.cleantechhub.net/projects/sunny-app/'],
+          ['Experience', '10+ years', 'data.cleantechhub.net/projects/sunny-app/'],
+          ['Bill reduction for customers', '50–70% range cited', 'data.cleantechhub.net/projects/sunny-app/'],
+          ['Warranty', '12 yr panels; 5 yr inverters', 'data.cleantechhub.net/projects/sunny-app/'],
+          ['kWh MRV', 'Pending', 'data.cleantechhub.net/projects/sunny-app/'],
+          ['Verified tCO₂e', 'Pending', 'data.cleantechhub.net/projects/sunny-app/'],
+          ['CTH deliverables', 'Pending', 'data.cleantechhub.net/projects/sunny-app/']
+        ]
+      },
+      {
+        name: 'Novatio',
+        url: 'https://data.cleantechhub.net/projects/novatio/',
+        sector: 'Waste-to-Energy & Biogas · CLAC23 · Seed',
+        desc: 'Biodigesters for rural farming families — organic waste to biogas and biofertilizer, displacing wood fuel.',
+        facts: [
+          ['Quality certification', 'ISO 9001:2015', 'data.cleantechhub.net/projects/novatio/'],
+          ['Livestock threshold', '≥3,000 pigs or ≥300,000 birds/cycle', 'data.cleantechhub.net/projects/novatio/'],
+          ['Palm sector', 'POME treatment and biogas from palm oil effluent', 'data.cleantechhub.net/projects/novatio/'],
+          ['Social programs', 'Biodigesters for smallholder families', 'data.cleantechhub.net/projects/novatio/'],
+          ['Live m³ biogas/day', 'Pending (site counters show placeholders)', 'data.cleantechhub.net/projects/novatio/'],
+          ['kWh MRV', 'Pending', 'data.cleantechhub.net/projects/novatio/'],
+          ['Verified tCO₂e', 'Pending', 'data.cleantechhub.net/projects/novatio/'],
+          ['CTH deliverables', 'Pending', 'data.cleantechhub.net/projects/novatio/']
+        ]
+      },
+      {
+        name: 'Griin Energy',
+        url: 'https://data.cleantechhub.net/projects/griin/',
+        sector: 'Solar PV · Green Finance · CLAC25 · Pre-Seed',
+        desc: 'Integrated solar financing and engineering for Latin American businesses.',
+        facts: [
+          ['Finance model', 'Save from day one; own 100% at contract end', 'data.cleantechhub.net/projects/griin/'],
+          ['Impact factor (site claim, unverified MRV)', '675 tCO₂ per MW installed', 'data.cleantechhub.net/projects/griin/'],
+          ['Tree equivalent (site claim)', '32,140 trees per MW', 'data.cleantechhub.net/projects/griin/'],
+          ['Total installed MW portfolio', 'Pending', 'data.cleantechhub.net/projects/griin/'],
+          ['kWh MRV', 'Pending', 'data.cleantechhub.net/projects/griin/'],
+          ['Verified tCO₂e', 'Pending', 'data.cleantechhub.net/projects/griin/'],
+          ['CTH deliverables', 'Pending', 'data.cleantechhub.net/projects/griin/']
+        ]
+      },
+      {
+        name: 'Ecovolt',
+        url: 'https://data.cleantechhub.net/projects/ecovolt/',
+        sector: 'Solar PV · CLAC25 · Pre-Seed',
+        desc: 'Designs, sells, and installs photovoltaic systems and solar pumping for residential and commercial clients.',
+        facts: [
+          ['Solar PV', 'Design, sale, installation (wiki-sourced)', 'data.cleantechhub.net/projects/ecovolt/'],
+          ['Solar pumping', 'Residential and commercial (wiki-sourced)', 'data.cleantechhub.net/projects/ecovolt/'],
+          ['Typical round', '$50K–$200K; seeking equity (wiki)', 'data.cleantechhub.net/projects/ecovolt/'],
+          ['Company website', 'Pending (DNS failure on page build date)', 'data.cleantechhub.net/projects/ecovolt/'],
+          ['kWh MRV', 'Pending', 'data.cleantechhub.net/projects/ecovolt/'],
+          ['Verified tCO₂e', 'Pending', 'data.cleantechhub.net/projects/ecovolt/'],
+          ['CTH deliverables', 'Pending', 'data.cleantechhub.net/projects/ecovolt/']
+        ]
+      },
+      {
+        name: 'Parsons Kinetics',
+        url: 'https://data.cleantechhub.net/projects/parsons-kinetics/',
+        sector: 'Wind Energy · CLAC24 · Seed',
+        desc: 'Biomimetic low-wind-speed Bioseed turbines inspired by Amazonian tree seeds.',
+        facts: [
+          ['Capacities', '5 kW and 25 kW models', 'data.cleantechhub.net/projects/parsons-kinetics/'],
+          ['Cut-in speed', 'From 3 m/s', 'data.cleantechhub.net/projects/parsons-kinetics/'],
+          ['Moderate-wind band', '4–8 m/s', 'data.cleantechhub.net/projects/parsons-kinetics/'],
+          ['Rural opportunity', '1.9 M ha with 4–8 m/s winds (P4G page)', 'data.cleantechhub.net/projects/parsons-kinetics/'],
+          ['Turbines deployed count', 'Pending', 'data.cleantechhub.net/projects/parsons-kinetics/'],
+          ['kWh MRV', 'Pending', 'data.cleantechhub.net/projects/parsons-kinetics/'],
+          ['Verified tCO₂e', 'Pending', 'data.cleantechhub.net/projects/parsons-kinetics/'],
+          ['CTH deliverables', 'Pending', 'data.cleantechhub.net/projects/parsons-kinetics/']
+        ]
+      }
+    ];
+
+    function isPending(val) {
+      return val === 'Pending' || val.toLowerCase().includes('pending');
+    }
+
+    function renderFacts(facts) {
+      return facts.map(([field, value, source]) => {
+        const valHtml = isPending(value)
+          ? '<span class="pending">Pending</span>'
+          : value;
+        const srcUrl = source.startsWith('http') ? source : 'https://' + source;
+        return `<tr><th>${field}</th><td>${valHtml}</td><td class="source"><a href="${srcUrl}" target="_blank" rel="noopener">${source}</a></td></tr>`;
+      }).join('');
+    }
+
+    const candidatesEl = document.getElementById('candidates');
+    candidatesEl.innerHTML = NAMED.map(c => `
+      <article class="candidate">
+        <div class="candidate-header">
+          <a href="${c.url}" target="_blank" rel="noopener">${c.name} →</a>
+          <span class="sector">${c.sector}</span>
+        </div>
+        <div class="candidate-body">
+          <p class="desc">${c.desc}</p>
+          <table class="facts-table">
+            <thead><tr><th>Field</th><th>Value</th><th>Source</th></tr></thead>
+            <tbody>${renderFacts(c.facts)}</tbody>
+          </table>
+        </div>
+      </article>
+    `).join('');
+
+    const seatGrid = document.getElementById('seat-grid');
+    let seatsHtml = '';
+    NAMED.forEach(c => {
+      seatsHtml += `<div class="seat filled"><span class="name">${c.name}</span><span class="label">Named</span></div>`;
+    });
+    for (let i = 0; i < 10; i++) {
+      seatsHtml += `<div class="seat open-fbd"><span class="name">—</span><span class="label">Fundación Bolívar Davivienda</span></div>`;
+    }
+    for (let i = 0; i < 10; i++) {
+      seatsHtml += `<div class="seat open-call"><span class="name">—</span><span class="label">Open Call</span></div>`;
+    }
+    seatGrid.innerHTML = seatsHtml;
+
+    document.getElementById('fbd-seats').innerHTML = Array(10).fill('<div class="mini-seat">Open</div>').join('');
+    document.getElementById('open-call-seats').innerHTML = Array(10).fill('<div class="mini-seat">Open</div>').join('');
+  </script>
+
+</body>
+</html>
